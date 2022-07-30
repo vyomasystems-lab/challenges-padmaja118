@@ -1,4 +1,4 @@
-# Adder Design Verification
+# Mux Design Verification
 
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
 
@@ -7,7 +7,7 @@ The verification environment is setup using [Vyoma's UpTickPro](https://vyomasys
 
 ## Verification Environment
 
-The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. The test drives inputs to the Design Under Test (adder module here) which takes in 4-bit inputs *a* and *b* and gives 5-bit output *sum*
+The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. The test drives inputs to the Design Under Test (31x1 mux module here) which takes in 31 two bit wide inputs and 5 wide sel and gives two bit wide output *out*
 
 The values are assigned to the input port using below code. As mux design takes 31 (0 to 30) inputs and each input is 2 bit wide, I have a for loop veriable i from 0 to 30 and assign i to the select line. 
 Then for each select line, i have another loop from 0 to 3 to drive the inputs and check the output with the expected output.
