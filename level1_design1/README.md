@@ -2,7 +2,7 @@
 
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
 
-*Make sure to include the Gitpod id in the screenshot*
+![image](https://user-images.githubusercontent.com/96460492/182003829-78a7512c-a8f4-4614-8972-42f715209bf8.png)
 
 
 ## Verification Environment
@@ -31,11 +31,7 @@ Then for each select line, i have another loop from 0 to 3 to drive the inputs a
 
 The assert statement is used for comparing the adder's outut to the expected value.
 
-The following error is seen:
-```
-assert dut.sum.value == A+B, "Adder result is incorrect: {A} + {B} != {SUM}, expected value={EXP}".format(
-                     AssertionError: Adder result is incorrect: 7 + 5 != 2, expected value=12
-```
+
 ## Test Scenario **(Important)**
 - Checks all the select lines with all combinations of inputs 
 - Expected Output: what we are driving to the corresponding input port. 
