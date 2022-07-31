@@ -65,4 +65,4 @@ The updated design is checked in as mux.v
   Verify the all the possible combinations 
 
 ## Is the verification complete ?
-  Yes
+  Yes, I covered all the possible input combinations.
