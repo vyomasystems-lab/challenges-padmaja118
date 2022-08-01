@@ -16,19 +16,25 @@ async def run_test(dut):
     # clock
     clock = Clock(dut.wclk, 10, units="us")  # Create a 10us period clock on port clk
     cocotb.start_soon(clock.start())        # Start the clock
-    clock = Clock(dut.rclk, 10, units="us")  # Create a 10us period clock on port clk
+    clock = Clock(dut.rclk, 12, units="us")  # Create a 10us period clock on port clk
     cocotb.start_soon(clock.start())        # Start the clock
     
     # reset
     await RisingEdge(dut.wclk)
     dut.wrst_n.value = 0
+    await RisingEdge(dut.wclk)
+    await RisingEdge(dut.wclk)
     await FallingEdge(dut.wclk)
     dut.wrst_n.value = 1
+    await RisingEdge(dut.wclk)
 
     await RisingEdge(dut.rclk)    
     dut.rrst_n.value = 0
+    await RisingEdge(dut.rclk)
+    await RisingEdge(dut.rclk)
     await FallingEdge(dut.rclk) 
     dut.rrst_n.value = 1
+    await RisingEdge(dut.rclk)
    
     async def drive_txn(rw,data):  
         success = True      
@@ -39,13 +45,14 @@ async def run_test(dut):
                 print("FIFO rempty")
             else:
                 dut.rinc.value = 1
+                await FallingEdge(dut.rclk)
+                data = (dut.rdata.value)
                 await RisingEdge(dut.rclk)
-                data = int(dut.rdata.value)
                 dut.rinc.value = 0   
         elif not rw:
             await RisingEdge(dut.wclk)
-            dut.wdata.value = data
             dut.winc.value = 1
+            dut.wdata.value = data
             await RisingEdge(dut.wclk)
             dut.winc.value = 0
             #if FIFO full, data was not written (overflow status)
