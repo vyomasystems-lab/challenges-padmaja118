@@ -4,64 +4,69 @@ import random
 import sys
 import cocotb
 from cocotb.decorators import coroutine
-from cocotb.triggers import Timer, RisingEdge
+from cocotb.triggers import Timer, RisingEdge, FallingEdge
 from cocotb.result import TestFailure
 from cocotb.clock import Clock
 
-# Clock Generation
-@cocotb.coroutine
-def clock_gen(signal,period=100):
-    while True:
-        signal.value <= 0
-        yield Timer(period/2) 
-        signal.value <= 1
-        yield Timer(period/2) 
-           
-def drive_txn(data, rw):        
-        if rw: #read
-            yield RisingEdge(dut.rclk)
-            #even if fifo empty, try to access in order to reach underflow status
-            if (dut.rempty):
-                success = False
-            else:
-                data = int(dut.rdata)
-            dut.rinc <= 1
-            yield RisingEdge(dut.rclk)
-            dut.rinc <= 0
-        elif not rw:
-            yield RisingEdge(dut.wclk)
-            dut.wdata <= data
-            dut.winc <= 1
-            yield RisingEdge(dut.clk)
-            dut.winc <= 0
-            #if FIFO full, data was not written (overflow status)
-            if status.wfull:
-                success = False
-        return data, success       
-        
+       
 # Sample Test
 @cocotb.test()
-def run_test(dut):
+async def run_test(dut):
 
     # clock
-    cocotb.fork(clock_gen(dut.wclk,period=60))
-    cocotb.fork(clock_gen(dut.rclk,period=50))
-
-    # reset
-    dut.wrst_n.value <= 0
-    yield Timer(10) 
-    dut.wrst_n.value <= 1
-    cocotb.log.info('wrst_n deasserted')  
+    clock = Clock(dut.wclk, 10, units="us")  # Create a 10us period clock on port clk
+    cocotb.start_soon(clock.start())        # Start the clock
+    clock = Clock(dut.rclk, 10, units="us")  # Create a 10us period clock on port clk
+    cocotb.start_soon(clock.start())        # Start the clock
     
-    dut.rrst_n.value <= 0
-    yield Timer(10) 
-    dut.rrst_n.value <= 1
-    cocotb.log.info('rrst_n deasserted')  
+    # reset
+    await RisingEdge(dut.wclk)
+    dut.wrst_n.value = 0
+    await FallingEdge(dut.wclk)
+    dut.wrst_n.value = 1
+
+    await RisingEdge(dut.rclk)    
+    dut.rrst_n.value = 0
+    await FallingEdge(dut.rclk) 
+    dut.rrst_n.value = 1
+   
+    async def drive_txn(rw,data):  
+        success = True      
+        if rw: #read
+            await RisingEdge(dut.rclk)
+            if (dut.rempty.value):
+                success = False
+                print("FIFO rempty")
+            else:
+                dut.rinc.value = 1
+                await RisingEdge(dut.rclk)
+                data = int(dut.rdata.value)
+                dut.rinc.value = 0   
+        elif not rw:
+            await RisingEdge(dut.wclk)
+            dut.wdata.value = data
+            dut.winc.value = 1
+            await RisingEdge(dut.wclk)
+            dut.winc.value = 0
+            #if FIFO full, data was not written (overflow status)
+            if dut.wfull.value:
+                print("FIFO full")
+                success = False
+        return data, success         
     
     for i in range(3): 
-        rw = random.choice([True, False])
-        data = random.randint(0,255) if not rw else None
-      
-        data, success = yield drive_txn(data, rw)
+       # rw = random.choice([True, False])
+       # data = random.randint(0,255) 
+       # print("rw=", rw , "data =", data )
+        data, success = await drive_txn( False, 0x5A) # Write 0x5A
+        print("data=",data,"success=", success)
+        data, success = await drive_txn( False, 0x5B) # Write 0x5B
+        print("data=",data,"success=", success)
+        data, success = await drive_txn( False, 0x5C) # Write 0x5C
+        print("data=",data,"success=", success)
+        data, success = await drive_txn(True, 0x0) # Read
+        print("data=",data,"success=", success)
+
+
     
     
