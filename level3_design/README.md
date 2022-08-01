@@ -1,7 +1,7 @@
 # Async FIFO Design Verification
 
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
-
+Design is from https://github.com/dpretet/async_fifo 
 
 ## Verification Environment
 
